@@ -1,22 +1,22 @@
 require('dotenv').config();
-const { Client, IntentsBitField } = require('discord.js');
+
+const { Client , GatewayIntentBits } = require('discord.js');
 const client = new Client({
-    intents:[
-        IntentsBitField.Flags.Guilds,
-        IntentsBitField.Flags.GuildMessages,
-        IntentsBitField.Flags.GuildMembers,
-        IntentsBitField.Flags.MessageContent,
-    ]
-});
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+    ] 
+    });
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
-});
-
-client.on('message', (message) => {
-    if (message.content === '!ping') {
-        message.reply('Pong!');
+  });
+  
+client.on('messageCreate', msg => {
+    console.log(msg.content);
+    if (msg.content === 'ping') {
+        msg.reply('Pong!');
     }
 });
-
 client.login(process.env.TOKEN);

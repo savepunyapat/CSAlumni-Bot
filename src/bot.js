@@ -11,7 +11,7 @@ const client = new Client({
     ],
 });
 
-mongoose.connect(process.env.MONGO_URL, { userNewUrlParser:true, useUnifiedTopology: true});
+mongoose.connect(process.env.MONGO_URL, {});
 const db = mongoose.connection;
 db.on('error',console.error.bind(console,'MongoDB connection error!'));
 db.once('open',()=>{
@@ -22,7 +22,7 @@ const PREFIX = '!'; // Command prefix
 const joinCommand = 'join'; // The command to initiate the join process
 const joinCode = '123456'; // The required code to join
 const allowedRole = 'Member'; // Replace with the name of the role you want to assign upon joining
-
+const Model = mongoose.model('AlumniAccount', {});
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
 });
@@ -33,6 +33,31 @@ client.on('messageCreate', async (msg) => {
 
     const args = msg.content.slice(PREFIX.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
+
+  
+
+    if(command === 'getdata'){
+        console.log('getdata');
+        try {
+            // Example: Find a document without a specific schema
+            const response = await Model.find({},{_id:0,Email:1});
+
+            console.log('completed');
+           console.log(response)
+            response.forEach(res => {
+               // console.log(res.Email);
+                
+                if (res) {
+                    msg.reply(`User Email: ${res}`);
+                } else {
+                    console.error('User email is empty or undefined.');
+                }
+            });
+          } catch (error) {
+            console.error('Error retrieving data:', error);
+            msg.reply('An error occurred while retrieving data.');
+          }      
+    }
 
     if (command === joinCommand) {
         // Check if the user has already joined

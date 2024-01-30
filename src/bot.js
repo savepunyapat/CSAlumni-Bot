@@ -1,6 +1,6 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, version, Partials } = require("discord.js");
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -8,6 +8,8 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.DirectMessageTyping,
+    GatewayIntentBits.DirectMessageReactions,
   ],
 });
 
@@ -20,8 +22,10 @@ db.once("open", () => {
 
 const PREFIX = "!";
 const joinCommand = "join";
-const joinCode = "123456";
-const allowedRole = "Member";
+const allowedRolesMap = {
+  12345678: "63",
+  87654321: "64",
+};
 
 const userSchema = new mongoose.Schema({
   Email: String,
@@ -41,9 +45,30 @@ const Model = mongoose.model("AlumniAccount", userSchema);
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
+client.on("guildMemberAdd", async (member) => {
+  const guildId = "1199406006975856640";
+  const guild = await client.guilds.fetch(guildId);
+
+  if (!guild) {
+    console.error("Guild not found.");
+    return;
+  }
+
+  const fetchedMember = await guild.members.fetch(member.id);
+
+  if (!fetchedMember) {
+    console.error("Member not found in the guild.");
+    return;
+  }
+
+  const dmChannel = await fetchedMember.createDM();
+  dmChannel.send(
+    "Welcome to the server! To join, please use the !join command."
+  );
+});
 
 client.on("messageCreate", async (msg) => {
-  if (msg.author.bot || !msg.content.startsWith(PREFIX)) return;
+  if (msg.author.bot) return;
 
   const args = msg.content.slice(PREFIX.length).trim().split(/ +/);
   const command = args.shift().toLowerCase();
@@ -52,25 +77,19 @@ client.on("messageCreate", async (msg) => {
     console.log("getdata");
     try {
       const response = await Model.find({});
-
       console.log("completed");
       console.log(response[0].Email);
-      /*
-      response.forEach((res) => {
-        if (res) {
-          msg.reply(`User Email: ${res}`);
-        } else {
-          console.error("User email is empty or undefined.");
-        }
-      });*/
     } catch (error) {
       console.error("Error retrieving data:", error);
       msg.reply("An error occurred while retrieving data.");
     }
   }
-
   if (command === joinCommand) {
-    if (msg.member.roles.cache.some((role) => role.name === allowedRole)) {
+    const memberRoles = msg.member.roles.cache.map((role) => role.name);
+
+    if (
+      Object.values(allowedRolesMap).some((role) => memberRoles.includes(role))
+    ) {
       return msg.reply("You are already a member!");
     }
 
@@ -80,43 +99,46 @@ client.on("messageCreate", async (msg) => {
 
     const dmChannel = await msg.author.createDM();
     dmChannel.send(
-      `To join the server, please reply with the following code: ${joinCode}`
+      `To join the server, please reply with your verify code!`
     );
-    const filter = (response) => response.author.id === msg.author.id;
-    dmChannel
-      .awaitMessages({ filter, max: 1, time: 60000, errors: ["time"] })
-      .then((collected) => {
-        const userResponse = collected.first().content;
-        console.log(userResponse);
 
-        if (userResponse === joinCode) {
-          const role = msg.guild.roles.cache.find(
-            (role) => role.name === allowedRole
-          );
-
-          if (!role) {
-            return console.error(`Role '${allowedRole}' not found.`);
-          }
-
-          try {
-            msg.member.roles.add(role);
-            dmChannel.send(
-              `Welcome! You have joined the server as ${allowedRole}.`
-            );
-          } catch (error) {
-            console.error(error);
-            dmChannel.send("There was an error while processing your request.");
-          }
-        } else {
-          dmChannel.send("Invalid code. Please try again.");
-        }
-      })
-      .catch(() => {
-        dmChannel.send("Time ran out. Please initiate the join process again.");
+    try {
+      const collected = await dmChannel.awaitMessages({
+        filter: (response) => response.author.id === msg.author.id,
+        max: 1,
+        time: 60000,
+        errors: ["time"],
       });
+
+      const userResponse = collected.first().content;
+
+      if (userResponse in allowedRolesMap) {
+        const role = allowedRolesMap[userResponse];
+        assignRoleAndSendWelcome(msg, role, dmChannel);
+      } else {
+        dmChannel.send("Invalid code. Please try again.");
+      }
+    } catch (error) {
+      dmChannel.send("Time ran out. Please initiate the join process again.");
+    }
   }
 });
 
+function assignRoleAndSendWelcome(msg, role, dmChannel) {
+  const roleObj = msg.guild.roles.cache.find((r) => r.name === role);
+
+  if (!roleObj) {
+    return console.error(`Role '${role}' not found.`);
+  }
+
+  try {
+    msg.member.roles.add(roleObj);
+    dmChannel.send(`Welcome! You have joined the server as ${role}.`);
+  } catch (error) {
+    console.error(error);
+    dmChannel.send("There was an error while processing your request.");
+  }
+}
 client
   .login(process.env.TOKEN)
   .catch((error) => console.error(`Error during login: ${error}`));

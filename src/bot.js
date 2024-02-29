@@ -1,6 +1,6 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-const { Client, GatewayIntentBits, version, Partials } = require("discord.js");
+const { Client, GatewayIntentBits, version, Partials ,Intents, EmbedBuilder  } = require("discord.js");
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -23,8 +23,14 @@ db.once("open", () => {
 const PREFIX = "!";
 const joinCommand = "join";
 const allowedRolesMap = {
+  98765432: "60",
+  23456789: "61",
+  87654321: "62",
   12345678: "63",
-  87654321: "64",
+  98761234: "64",
+  34567890: "65",
+  56789012: "66",
+  10987654: "67",
 };
 
 const userSchema = new mongoose.Schema({
@@ -46,7 +52,7 @@ client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 client.on("guildMemberAdd", async (member) => {
-  const guildId = "1199406006975856640";
+  const guildId = "1184077351970144256";
   const guild = await client.guilds.fetch(guildId);
 
   if (!guild) {
@@ -122,7 +128,24 @@ client.on("messageCreate", async (msg) => {
       dmChannel.send("Time ran out. Please initiate the join process again.");
     }
   }
+
+  
+if(msg.content.startsWith('!command')) {
+
+  return msg.reply('Command not found.');
+}try {
+    channel.commands.get(command).execute(message, args);
+    } catch (error) {
+        console.error(error);
+        msg.reply('There was an error executing that command.');
+    }
+
 });
+
+
+
+
+
 
 function assignRoleAndSendWelcome(msg, role, dmChannel) {
   const roleObj = msg.guild.roles.cache.find((r) => r.name === role);
@@ -139,6 +162,7 @@ function assignRoleAndSendWelcome(msg, role, dmChannel) {
     dmChannel.send("There was an error while processing your request.");
   }
 }
+
 client
   .login(process.env.TOKEN)
   .catch((error) => console.error(`Error during login: ${error}`));

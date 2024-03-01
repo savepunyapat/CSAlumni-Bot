@@ -31,6 +31,7 @@ const allowedRolesMap = {
   34567890: "65",
   56789012: "66",
   10987654: "67",
+  99999999: "68",
 };
 
 const userSchema = new mongoose.Schema({
@@ -69,7 +70,7 @@ client.on("guildMemberAdd", async (member) => {
 
   const dmChannel = await fetchedMember.createDM();
   dmChannel.send(
-    "Welcome to the server! To join, please use the !join command."
+    "Welcome to the server! To join, please use the KEY you got from the website. ."
   );
 });
 

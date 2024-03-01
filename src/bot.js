@@ -70,7 +70,7 @@ client.on("guildMemberAdd", async (member) => {
 
   const dmChannel = await fetchedMember.createDM();
   dmChannel.send(
-    "Welcome to the server! To join, please use the KEY you got from the website. ."
+    "Welcome to the server! To join, please use the KEY you got from the website in The join-channel."
   );
 });
 
@@ -99,7 +99,6 @@ client.on("messageCreate", async (msg) => {
     ) {
       return msg.reply("You are already a member!");
     }
-
     if (!msg.author.dmChannel) {
       await msg.author.createDM();
     }
@@ -128,18 +127,14 @@ client.on("messageCreate", async (msg) => {
     } catch (error) {
       dmChannel.send("Time ran out. Please initiate the join process again.");
     }
-  }
+  }else {
+    
+    return msg.reply('Command not found.');
+
+   }
 
   
-if(msg.content.startsWith('!command')) {
 
-  return msg.reply('Command not found.');
-}try {
-    channel.commands.get(command).execute(message, args);
-    } catch (error) {
-        console.error(error);
-        msg.reply('There was an error executing that command.');
-    }
 
 });
 

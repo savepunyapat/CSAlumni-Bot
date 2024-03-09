@@ -128,10 +128,8 @@ client.on("messageCreate", async (msg) => {
       dmChannel.send("Time ran out. Please initiate the join process again.");
     }
   }else {
-    
-    return msg.reply('Command not found.');
-
-   }
+    return;
+}
 
   
 

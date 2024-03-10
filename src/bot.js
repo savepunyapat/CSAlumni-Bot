@@ -23,6 +23,8 @@ db.once("open", () => {
 const PREFIX = "!";
 const joinCommand = "join";
 const allowedRolesMap = {
+  13267862: "1-30",
+  19687352: "31-59",
   98765432: "60",
   23456789: "61",
   87654321: "62",
